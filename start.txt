@@ -1,0 +1,4 @@
+start blockchain node on ganache
+open cmd in folder
+run command "http-server"
+or "npm install -g http-server"

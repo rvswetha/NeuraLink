@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        .navbar { background: #439643; color: white; }
+        .menu a { padding: 12px; text-decoration: none; color: white; }
+        .menu a:hover { background: rgba(255, 255, 255, 0.2); }
+    </style>
+</head>
+<body>
+    <nav class="navbar p-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold">Patient Dashboard</h1>
+        <div class="menu flex space-x-4">
+            <a href="#">📋 My Records</a>
+            <a href="#">⚙ Settings</a>
+            <a href="user-login.html" class="text-red-400">🚪 Logout</a>
+        </div>
+    </nav>
+
+    <div class="p-6">
+        <h2 class="text-2xl font-bold text-gray-700">My Health Records</h2>
+        <p class="text-gray-600 mt-2">Manage your records and doctor access on the blockchain.</p>
+
+        <div class="mt-6 bg-white p-4 rounded-lg shadow-md">
+            <h3 class="text-xl font-bold">My Records</h3>
+            <button class="bg-blue-500 text-white px-4 py-2 mt-2 rounded" onclick="viewMyRecords()">View My Records</button>
+            <div id="myRecords" class="mt-4"></div>
+        </div>
+
+        <div class="mt-6 bg-white p-4 rounded-lg shadow-md">
+            <h3 class="text-xl font-bold">Manage Doctor Access</h3>
+            <input type="text" id="doctorAddress" placeholder="Enter Doctor Address" class="border p-2 mt-2 w-full">
+            <button class="bg-blue-500 text-white px-4 py-2 mt-2 rounded" onclick="grantAccess()">Grant Access</button>
+            <button class="bg-red-500 text-white px-4 py-2 mt-2 rounded" onclick="revokeAccess()">Revoke Access</button>
+        </div>
+    </div>
+
+    <script>
+        let web3;
+        let contract;
+        let account;
+        const contractAddress = "0xe6591331A01dfAc6F384094e64A50c5898A7a4dB"; // Replace with your deployed contract address
+        const contractABI = [
+    {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "authorizedDoctors",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "isDoctor",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "isPatient",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "patientRecords",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "data",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "addedBy",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "doctor",
+          "type": "address"
+        }
+      ],
+      "name": "registerDoctor",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "registerPatient",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "doctor",
+          "type": "address"
+        }
+      ],
+      "name": "grantAccess",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "doctor",
+          "type": "address"
+        }
+      ],
+      "name": "revokeAccess",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "patient",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "data",
+          "type": "string"
+        }
+      ],
+      "name": "addRecord",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "patient",
+          "type": "address"
+        }
+      ],
+      "name": "getRecords",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "string",
+              "name": "data",
+              "type": "string"
+            },
+            {
+              "internalType": "uint256",
+              "name": "timestamp",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "addedBy",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct PatientRecord.Record[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ];
+
+
+        async function init() {
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+                contract = new web3.eth.Contract(contractABI, contractAddress);
+                const accounts = await web3.eth.getAccounts();
+                account = accounts[0];
+                const isPatient = await contract.methods.isPatient(account).call();
+                if (!isPatient) window.location.href = "user-login.html";
+            } else {
+                alert("Please install MetaMask!");
+            }
+        }
+
+        async function viewMyRecords() {
+            try {
+                const records = await contract.methods.getRecords(account).call({ from: account });
+                const myRecordsDiv = document.getElementById("myRecords");
+                myRecordsDiv.innerHTML = "";
+                records.forEach(record => {
+                    const p = document.createElement("p");
+                    p.textContent = `Data: ${record.data}, Time: ${new Date(record.timestamp * 1000).toLocaleString()}, Added by: ${record.addedBy}`;
+                    myRecordsDiv.appendChild(p);
+                });
+            } catch (error) {
+                alert("Failed to view records.");
+            }
+        }
+
+        async function grantAccess() {
+            const doctorAddress = document.getElementById("doctorAddress").value;
+            try {
+                await contract.methods.grantAccess(doctorAddress).send({ from: account });
+                alert("Access granted");
+            } catch (error) {
+                alert("Failed to grant access.");
+            }
+        }
+
+        async function revokeAccess() {
+            const doctorAddress = document.getElementById("doctorAddress").value;
+            try {
+                await contract.methods.revokeAccess(doctorAddress).send({ from: account });
+                alert("Access revoked");
+            } catch (error) {
+                alert("Failed to revoke access.");
+            }
+        }
+
+        window.addEventListener("load", init);
+    </script>
+</body>
+</html>

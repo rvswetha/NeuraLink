@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clinic Login - NeuraLink</title>
+    
+    <link rel="stylesheet" href="style.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Font (Poppins) -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <!-- AOS (Animate on Scroll) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
+    
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f9f9f9; }
+        .custom-green { color: #439643; }
+        .custom-bg-green { background-color: #439643; }
+        .custom-hover-green:hover { background-color: #367a37; }
+
+        .login-container {
+            display: flex;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .login-form {
+            background: white;
+            padding: 40px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .login-btn {
+            width: 100%;
+            background-color: #439643;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .login-btn:hover {
+            background-color: #367a37;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="absolute top-0 w-full p-4 flex justify-between bg-white shadow-md">
+        <a href="index.html"><img src="logo.png" alt="NeuraLink Logo" class="h-12 w-auto"></a>
+        <ul class="flex space-x-6 custom-green font-semibold">
+            <li><a href="index.html#about" class="hover:text-green-800">About</a></li>
+            <li><a href="index.html#contact" class="hover:text-green-800">Contact</a></li>
+            <li><a href="login.html" class="hover:text-green-800">Login</a></li>
+        </ul>
+    </nav>
+
+    <!-- Clinic Login Form -->
+    <div class="login-container">
+        <div class="login-form" data-aos="fade-up">
+            <h2 class="text-2xl font-bold text-gray-800">Clinic Login</h2>
+            <p class="text-gray-600 mb-4">Enter your credentials to access the clinic portal</p>
+            <form id="clinicLoginForm">
+                <input type="text" id="clinic-username" placeholder="Clinic Username" required>
+                <input type="password" id="clinic-password" placeholder="Password" required>
+                <button type="submit" class="login-btn">Login</button>
+                <p id="error-message" class="error-message"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript for Validation -->
+    <script>
+        document.getElementById("clinicLoginForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // Prevent form from submitting normally
+
+            // Get username and password values
+            var username = document.getElementById("clinic-username").value;
+            var password = document.getElementById("clinic-password").value;
+            var errorMessage = document.getElementById("error-message");
+
+            // Check if username and password are correct
+            if (username === "Admin" && password === "root123") {
+                window.location.href = "dashboard.html"; // Redirect to Dashboard
+            } else {
+                errorMessage.textContent = "Invalid username or password. Please try again.";
+            }
+        });
+    </script>
+
+    <!-- AOS JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script>
+        AOS.init();
+    </script>
+
+</body>
+</html>

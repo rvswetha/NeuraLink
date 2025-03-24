@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f9f9f9; }
+        .custom-green { color: #439643; }
+        .login-container { display: flex; min-height: 100vh; align-items: center; justify-content: center; flex-direction: column; }
+        .login-form { background: white; padding: 40px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 8px; text-align: center; width: 100%; max-width: 400px; }
+        .login-btn { background-color: #439643; color: white; padding: 12px; border: none; border-radius: 5px; font-size: 18px; cursor: pointer; }
+        .login-btn:hover { background-color: #367a37; }
+    </style>
+</head>
+<body>
+    <nav class="absolute top-0 w-full p-4 flex justify-between bg-white shadow-md">
+        <a href="index.html"><img src="logo.png" alt="Logo" class="h-12 w-auto"></a>
+        <ul class="flex space-x-6 custom-green font-semibold">
+            <li><a href="index.html#about" class="hover:text-green-800">About</a></li>
+            <li><a href="index.html#contact" class="hover:text-green-800">Contact</a></li>
+            <li><a href="login.html" class="hover:text-green-800">Login</a></li>
+        </ul>
+    </nav>
+
+    <div class="login-container">
+        <div class="login-form">
+            <h2 class="text-2xl font-bold text-gray-800">Connect Your Wallet</h2>
+            <p class="text-gray-600 mb-4">Use MetaMask to access your dashboard</p>
+            <button class="login-btn" onclick="connectWallet()">Connect Wallet</button>
+        </div>
+    </div>
+
+    <script>
+        let web3;
+        let contract;
+        let account;
+        const contractAddress = "0xe6591331A01dfAc6F384094e64A50c5898A7a4dB"; // Replace with your deployed contract address
+        const contractABI = [
+    {
+      "inputs": [],
+      "stateMutability": "nonpayable",
+      "type": "constructor"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "authorizedDoctors",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "isDoctor",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "isPatient",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "",
+          "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "patientRecords",
+      "outputs": [
+        {
+          "internalType": "string",
+          "name": "data",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "addedBy",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "doctor",
+          "type": "address"
+        }
+      ],
+      "name": "registerDoctor",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "registerPatient",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "doctor",
+          "type": "address"
+        }
+      ],
+      "name": "grantAccess",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "doctor",
+          "type": "address"
+        }
+      ],
+      "name": "revokeAccess",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "patient",
+          "type": "address"
+        },
+        {
+          "internalType": "string",
+          "name": "data",
+          "type": "string"
+        }
+      ],
+      "name": "addRecord",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "patient",
+          "type": "address"
+        }
+      ],
+      "name": "getRecords",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "string",
+              "name": "data",
+              "type": "string"
+            },
+            {
+              "internalType": "uint256",
+              "name": "timestamp",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "addedBy",
+              "type": "address"
+            }
+          ],
+          "internalType": "struct PatientRecord.Record[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    }
+  ];
+
+
+        async function init() {
+            if (window.ethereum) {
+                web3 = new Web3(window.ethereum);
+                contract = new web3.eth.Contract(contractABI, contractAddress);
+            } else {
+                alert("Please install MetaMask!");
+            }
+        }
+
+        async function connectWallet() {
+            try {
+                await window.ethereum.request({ method: "eth_requestAccounts" });
+                const accounts = await web3.eth.getAccounts();
+                account = accounts[0];
+                checkRole();
+            } catch (error) {
+                console.error("Error connecting wallet:", error);
+                alert("Failed to connect wallet.");
+            }
+        }
+
+        async function checkRole() {
+            const isDoctor = await contract.methods.isDoctor(account).call();
+            const isPatient = await contract.methods.isPatient(account).call();
+            if (isDoctor) {
+                window.location.href = "doctor-dashboard.html";
+            } else if (isPatient) {
+                window.location.href = "patient-dashboard.html";
+            } else {
+                if (confirm("You are not registered. Register as a patient?")) {
+                    await contract.methods.registerPatient().send({ from: account });
+                    window.location.href = "patient-dashboard.html";
+                }
+            }
+        }
+
+        window.addEventListener("load", init);
+        window.ethereum.on("accountsChanged", (accounts) => {
+            account = accounts[0];
+            checkRole();
+        });
+    </script>
+</body>
+</html>
